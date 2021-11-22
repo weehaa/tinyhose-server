@@ -1,27 +1,19 @@
 import express from "express";
-import { listings } from "./listing";
+import { ApolloServer } from "apollo-server-express";
 
-const app = express();
-const port = 9000;
+import { typeDefs, resolvers } from "./graphql";
 
-app.use(express.json());
+(async function () {
+  const server = new ApolloServer({ typeDefs, resolvers });
 
-app.get("/listings", (_req, res) => {
-  return res.send(listings);
-});
+  await server.start();
 
-app.post("/delete-listing", (req, res) => {
-  const id: string = req.body.id;
+  const app = express();
+  const port = 9000;
 
-  for (const listing of listings) {
-    if (listing.id === id) {
-      return res.send(listings.splice(listings.indexOf(listing), 1));
-    }
-  }
+  server.applyMiddleware({ app, path: "/api" });
 
-  return res.send("failed to delete listing\n");
-});
+  app.listen(port);
 
-app.listen(port);
-
-console.log(`[app]: http://localhost:${port}`);
+  console.log(`[app]: http://localhost:${port}`);
+})();
